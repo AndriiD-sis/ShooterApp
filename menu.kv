@@ -1,0 +1,252 @@
+<MenuScreen>:
+    Image:
+        id: bg_menu
+        source: 'assets/image/menu-bg-animated.png'
+        allow_stretch: True
+        keep_ratio: False
+
+    MDFloatLayout:
+        Image:
+            source: 'assets/image/logo.png'
+            size_hint: 0.5, 0.5
+            pos_hint: {'center_x': 0.13,'center_y': 0.85}
+
+        Button:
+            text: 'NEW GAME'
+            background_normal: 'assets/image/buttons/button-bg.png'
+            background_down: 'assets/image/buttons/button-bg.png'
+            font_name: 'assets/fonts/PressStart2P-Regular.ttf'
+            bold: True
+            font_size: self.height * 0.5
+            size_hint: 0.25, 0.08
+            pos_hint: {'center_x': 0.13,'center_y': 0.65}
+            on_press: app.new_game()
+
+        Button:
+            text: 'LOAD GAME'
+            background_normal: 'assets/image/buttons/button-bg.png'
+            background_down: 'assets/image/buttons/button-bg.png'
+            bold: True
+            font_name: 'assets/fonts/PressStart2P-Regular.ttf'
+            font_size: self.height * 0.5
+            size_hint: 0.25, 0.08
+            pos_hint: {'center_x': 0.13,'center_y': 0.55}
+            on_press: app.load_game()
+        
+        Button:
+            text: 'OPTIONS'
+            background_normal: 'assets/image/buttons/button-bg.png'
+            background_down: 'assets/image/buttons/button-bg.png'
+            bold: True
+            font_name: 'assets/fonts/PressStart2P-Regular.ttf'
+            font_size: self.height * 0.5
+            size_hint: 0.25, 0.08
+            pos_hint: {'center_x': 0.13,'center_y': 0.45}
+            on_press: root.show_settings()
+        
+        Button:
+            text: 'QUIT'
+            background_normal: 'assets/image/buttons/button-bg.png'
+            background_down: 'assets/image/buttons/button-bg.png'
+            bold: True
+            font_name: 'assets/fonts/PressStart2P-Regular.ttf'
+            font_size: self.height * 0.5
+            size_hint: 0.25, 0.08
+            pos_hint: {'center_x': 0.13,'center_y': 0.35}
+            on_press: app.quit()
+
+    Button:
+        id: blocker
+        size_hint: 0, 0
+        background_color: (0, 0, 0, 1)
+        opacity: 0
+        disabled: True
+
+    MDCard:
+        id: settings_panel
+        size_hint: 0 , 0
+        opacity: 0
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+        md_bg_color: (0, 0, 0, 0)
+        radius: [0, 0, 0, 0]
+        orientation: 'vertical'
+        spacing: self.width * 0.01
+        padding: self.width * 0.01
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1
+            Rectangle:
+                source: 'assets/image/buttons/button-bg-big.png'
+                pos: self.pos
+                size: self.size
+
+        MDLabel:
+            text: 'Options'
+            bold: True
+            font_name: 'assets/fonts/VT323-Regular.ttf'
+            halign: 'center'
+            color: (1, 1, 1, 1)
+            font_size: self.height * 1
+            size_hint: 0.25, 0.08
+            pos_hint: {'center_x': 0.1,'center_y': 0.95}
+
+        MDBoxLayout:
+            size_hint: 1, 0.8
+            md_bg_color: (0, 0, 0, 0)
+            orientation: 'vertical'
+            spacing: self.width * 0.01
+            padding: self.width * 0.01
+            canvas.before:
+                Color:
+                    rgba: 1, 1, 1, 1
+                Rectangle:
+                    source: 'assets/image/buttons/button-bg-big-2.png'
+                    pos: self.pos
+                    size: self.size
+            #sound
+            MDLabel:
+                text: 'Sound'
+                bold: True
+                font_name: 'assets/fonts/VT323-Regular.ttf'
+                color: (1, 1, 1, 1)
+                font_size: self.height * 4
+                size_hint: 1, 0.05
+            MDSeparator:
+                color: (0.451, 0.451, 0.549, 1)
+            MDBoxLayout:
+                orientation: 'vertical'
+                spacing: self.width * 0.01
+                padding: self.width * 0.01
+                MDBoxLayout:
+                    MDLabel:
+                        text: 'Music'
+                        bold:True
+                        font_name: 'assets/fonts/VT323-Regular.ttf'
+                        color: (1, 1, 1, 1)
+                        halign: 'left'
+                        valign: 'middle'
+                        font_size: self.height * 0.7
+                    MDCheckbox:
+                        id: music_checkbox
+                        active: True
+                    
+                MDBoxLayout:
+                    MDLabel:
+                        text: 'Sound effects'
+                        bold:True
+                        font_name: 'assets/fonts/VT323-Regular.ttf'
+                        color: (1, 1, 1, 1)
+                        halign: 'left'
+                        valign: 'middle'
+                        font_size: self.height * 0.7
+                    MDCheckbox:
+                        id: soundeffect_checkbox
+                        active: True
+
+                MDBoxLayout:
+                    MDLabel:
+                        text: 'Volume'
+                        bold:True
+                        font_name: 'assets/fonts/VT323-Regular.ttf'
+                        color: (1, 1, 1, 1)
+                        font_size: self.height * 0.7
+                    MDSlider:
+                        id: volume_slider
+                        min: 0
+                        max: 100
+                        value: 20
+
+            #device
+            MDLabel:
+                text: 'Device'
+                bold: True
+                font_name: 'assets/fonts/VT323-Regular.ttf'
+                color: (1, 1, 1, 1)
+                font_size: self.height * 4
+                size_hint: 1, 0.05
+            MDSeparator:
+                color: (0.451, 0.451, 0.549, 1)
+            MDBoxLayout:
+                orientation: 'vertical'
+                spacing: self.width * 0.01
+                padding: self.width * 0.01
+                MDBoxLayout:
+                    MDLabel:
+                        text: 'Vibration'
+                        bold:True
+                        font_name: 'assets/fonts/VT323-Regular.ttf'
+                        color: (1, 1, 1, 1)
+                        halign: 'left'
+                        valign: 'middle'
+                        font_size: self.height * 0.7
+                    MDCheckbox:
+                        id: vibration_checkbox
+                        active: True
+
+                MDBoxLayout:
+                    MDLabel:
+                        text: 'Brightness'
+                        bold:True
+                        font_name: 'assets/fonts/VT323-Regular.ttf'
+                        halign: 'left'
+                        valign: 'middle'
+                        color: (1, 1, 1, 1)
+                        font_size: self.height * 0.7
+                    MDSlider:
+                        id: brightness_slider
+                        min: 0
+                        max: 100
+                        value: 100
+                        on_value: app.brightness = (100 - self.value) / 100
+
+                MDBoxLayout:
+                    MDLabel:
+                        text: 'Version'
+                        bold: True
+                        font_name: 'assets/fonts/VT323-Regular.ttf'
+                        color: (1, 1, 1, 1)
+                        font_size: self.height * 0.7
+                        size_hint_x: 0.8
+                    MDCard:
+                        size_hint_x: 0.2
+                        md_bg_color: (0.1, 0.12, 0.2, 1)
+                        radius: [0, 0, 0, 0] 
+                        line_color: (0.451, 0.451, 0.549, 1)
+                        MDLabel:
+                            text: '0.6.0'
+                            bold: True
+                            font_name: 'assets/fonts/PixelifySans-Regular.ttf'
+                            halign: 'center'
+                            valign: 'middle'
+                            color: (1, 1, 1, 1)
+                    Widget:
+                        size_hint_x: 0.2
+           
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, 0.05
+            spacing: self.width * 0.01
+            Widget:
+            Button:
+                text: 'Save'
+                background_normal: 'assets/image/buttons/button-bg.png'
+                background_down: 'assets/image/buttons/button-bg.png'
+                bold: True
+                font_name: 'assets/fonts/VT323-Regular.ttf'
+                size_hint_x: 0.15
+                on_press: root.hide_settings(); root.save_settings()
+            Button:
+                text: 'Reset'
+                background_normal: 'assets/image/buttons/button-bg.png'
+                background_down: 'assets/image/buttons/button-bg.png'
+                bold: True
+                font_name: 'assets/fonts/VT323-Regular.ttf'
+                size_hint_x: 0.15
+                on_press: root.reset_settings()
+    Widget:
+        canvas:
+            Color:
+                rgba: 0, 0, 0, app.brightness
+            Rectangle:
+                pos: self.pos
+                size: self.size
