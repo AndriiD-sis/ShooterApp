@@ -129,6 +129,7 @@
                     MDCheckbox:
                         id: music_checkbox
                         active: True
+                        on_active: root.bg_music(self.active)
                     
                 MDBoxLayout:
                     MDLabel:
@@ -142,6 +143,7 @@
                     MDCheckbox:
                         id: soundeffect_checkbox
                         active: True
+                        on_active: root.soundeffect(self.active)
 
                 MDBoxLayout:
                     MDLabel:
@@ -155,6 +157,7 @@
                         min: 0
                         max: 100
                         value: 20
+                        on_value: root.volume(self.value)
 
             #device
             MDLabel:
@@ -213,7 +216,7 @@
                         radius: [0, 0, 0, 0] 
                         line_color: (0.451, 0.451, 0.549, 1)
                         MDLabel:
-                            text: '0.6.0'
+                            text: '0.9.0'
                             bold: True
                             font_name: 'assets/fonts/PixelifySans-Regular.ttf'
                             halign: 'center'

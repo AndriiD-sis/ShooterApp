@@ -40,7 +40,7 @@
             icon: 'assets/image/buttons/button-paused.png'
             icon_size: 75
             pos_hint: {'center_x': 0.97, 'center_y':0.93}
-            on_press: root.show_pause()
+            on_press: root.show_pause(); app.game_music.stop()
 
         MDFloatingActionButton:
             id: move_left
@@ -127,7 +127,7 @@
                 halign: 'left'
                 valign: 'middle'
                 font_size: self.height * 0.2
-                on_press: root.hide_pause()
+                on_press: root.hide_pause(); app.game_music.play() if app.music_enabled == True else None
             Button:
                 text: 'Return to menu'
                 background_normal: 'assets/image/buttons/button-bg.png'
@@ -137,7 +137,7 @@
                 halign: 'left'
                 valign: 'middle'
                 font_size: self.height * 0.2
-                on_press: app.save_game(); root.go_to_menu();
+                on_press: app.save_game(); app.go_to_menu();
             Button:
                 text: 'Exit the game'
                 background_normal: 'assets/image/buttons/button-bg.png'
