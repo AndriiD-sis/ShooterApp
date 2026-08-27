@@ -10,11 +10,17 @@ from kivy.lang import Builder
 from kivy.storage.jsonstore import JsonStore
 from kivy.properties import NumericProperty
 from kivy.uix.screenmanager import FadeTransition
+from kivy.uix.screenmanager import NoTransition
 from kivy.core.audio import SoundLoader
-from random import randint, uniform
+from kivy.animation import Animation
+from kivymd.uix.floatlayout import MDFloatLayout
+from kivymd.uix.fitimage import FitImage
+from random import randint, choice
 
 Builder.load_file('menu.kv')
 Builder.load_file('game.kv')
+Builder.load_file('game_over.kv')
+Builder.load_file('game_win.kv')
 
 class Shot(Image):
     pass
@@ -28,13 +34,37 @@ class Asteroid(Image):
         self.size_hint = (0.05, 0.1)
     
 class Enemy(Image):
+    enemy_hp = NumericProperty(5)
     def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-            self.source = 'assets/image/ship/space-ship-idle-enemy_apng.png'
-            self.fit_mode = 'fill'
-            self.anim_delay = 1 / 8
-            self.size_hint = (0.15, 0.15)
-            self.shot_timer = 0
+        super().__init__(**kwargs)
+        self.source = 'assets/image/ship/space-ship-idle-enemy_apng.png'
+        self.fit_mode = 'fill'
+        self.anim_delay = 1 / 8
+        self.size_hint = (0.15, 0.15)
+        self.shot_timer = 0
+
+class MoveStar(MDFloatLayout):
+    def __init__(self, source, speed=dp(1), *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.speed = speed
+        self.add_widget(FitImage(source=source))
+        self.add_widget(FitImage(source=source, pos=(Window.width, 0)))
+    def move(self):
+        for img in self.children:
+            img.x -= self.speed
+            if img.right <= 0:
+                img.x = max(child.right for child in self.children)
+                
+class MovePlanet(MDFloatLayout):
+    def __init__(self, source, speed=dp(1), *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.speed = speed
+        self.add_widget(FitImage(source=source, size_hint=(1, 1)))
+    def move(self):
+        for img in self.children:
+            img.x -= self.speed
+            if img.right <= 0:
+                img.x = Window.width + randint(200, 600)
 
 class MenuScreen(MDScreen):
     app = MDApp.get_running_app()
@@ -77,6 +107,7 @@ class MenuScreen(MDScreen):
         
     def bg_music(self, value):
         app.music_enabled = value
+        app.win_enabled = value
         if value:
             if self.manager.current != 'game':
                 app.menu_music.play()
@@ -88,11 +119,23 @@ class MenuScreen(MDScreen):
             
     def soundeffect(self, value):
         app.shot_enabled = value
+        app.hit_enabled = value
+        app.lose_enabled = value
+        app.text_enabled = value
+        app.noice_enabled = value
+        app.coin_enabled = value
         
     def volume(self, value):
         app.menu_music.volume = value / 100
         app.game_music.volume = value / 100
         app.shot.volume = value / 100
+        app.hit.volume = value / 100
+        app.lose.volume = value / 100
+        app.noice.volume = value / 100
+        app.coin.volume = value / 100
+        app.win.volume = value / 100
+        for text_sound in app.text_sounds:
+            text_sound.volume = value / 100
 
 class GameScreen(MDScreen):
     app = MDApp.get_running_app()
@@ -113,6 +156,11 @@ class GameScreen(MDScreen):
             self.spawn_timer_enemy = 0
             self.paused = False
             
+            self.stars = MoveStar(source='assets/image/stars.png', speed=20)
+            self.planet = MovePlanet(source='assets/image/planet.png', speed=0.3)
+            self.ids.bullets.add_widget(self.stars)
+            self.ids.bullets.add_widget(self.planet)
+            
     def pressKey(self, key):
         self.eventkeys[key] = True
         
@@ -125,6 +173,8 @@ class GameScreen(MDScreen):
         
         if self.paused:
             return
+        self.stars.move()
+        self.planet.move()
         for key in self.eventkeys:
             if self.eventkeys[key] == True:
                 if key == 'left':
@@ -149,12 +199,30 @@ class GameScreen(MDScreen):
             self.ids.space_ship.source = 'assets/image/ship/space-ship-down_apng.png'
         else:
             self.ids.space_ship.source = 'assets/image/ship/space-ship-idle_apng.png'
-        
+        #гравець
         for bullet in self.cartridge:
             bullet.x += 13
-            
+            for enemy in self.enemys[:]:
+                if bullet.collide_widget(enemy):
+                    enemy.enemy_hp -= 1
+                    if app.hit_enabled:
+                        app.hit.play()
+                    self.ids.bullets.remove_widget(bullet)
+                    self.cartridge.remove(bullet)
+                    if enemy.enemy_hp <= 0:
+                        self.ids.bullets.remove_widget(enemy)
+                        self.enemys.remove(enemy)
+                        self.coins += 10000
+                    break
+        #ворог
         for bullet in self.cartridge_enemy:
             bullet.x -= 13
+            if bullet.collide_widget(self.ids.space_ship):
+                self.hp -= 1
+                if app.hit_enabled:
+                    app.hit.play()
+                self.ids.bullets.remove_widget(bullet)
+                self.cartridge_enemy.remove(bullet)
             
         self.spawn_timer_asteroid += dt
         self.spawn_timer_enemy += dt
@@ -167,8 +235,15 @@ class GameScreen(MDScreen):
             self.spawn_enemy()
             self.spawn_timer_enemy = 0
             
+        #астероїд
         for asteroid in self.asteroids[:]:
             asteroid.x -= 10
+            if asteroid.collide_widget(self.ids.space_ship):
+                self.hp -= 1
+                if app.hit_enabled:
+                    app.hit.play()
+                self.ids.bullets.remove_widget(asteroid)
+                self.asteroids.remove(asteroid)
             if asteroid.right < 0:
                 self.ids.bullets.remove_widget(asteroid)
                 self.asteroids.remove(asteroid)
@@ -183,6 +258,14 @@ class GameScreen(MDScreen):
             if enemy.shot_timer >= 2:
                 self.enemy_shot(enemy)
                 enemy.shot_timer = 0
+                
+        self.ids.health_hud.source = self.get_health_source(self.hp)
+        
+        if self.hp <= 0:
+            self.game_over()
+            
+        if self.coins >= 1000000:
+            self.game_win()
             
     def moveLeft(self):
         if self.ship_x > 0:
@@ -232,7 +315,6 @@ class GameScreen(MDScreen):
     def show_pause(self):
         self.paused = True
         self.ids.space_ship.anim_delay = -1
-        self.ids.bg_game.anim_delay = -1
         for asteroid in self.asteroids:
             asteroid.anim_delay = -1
         for enemy in self.enemys:
@@ -248,7 +330,6 @@ class GameScreen(MDScreen):
     def hide_pause(self):
         self.paused = False
         self.ids.space_ship.anim_delay = 1 / 8
-        self.ids.bg_game.anim_delay = 1 / 24
         for asteroid in self.asteroids:
             asteroid.anim_delay = 1 / 20
         for enemy in self.enemys:
@@ -259,8 +340,162 @@ class GameScreen(MDScreen):
                 
         self.ids.pause_panel.size_hint = (0, 0)
         self.ids.pause_panel.opacity = 0
+        
+    def get_health_source(self, hp):
+        hp = max(1, min(hp, 10))
+        return f'assets/image/hp/health-hud-{hp}.png'
+        
+    def game_over(self):
+        app.game_music.stop()
+        game_over_screen = self.manager.get_screen('game_over')
+        self.manager.transition = NoTransition()
+        self.manager.current = 'game_over'
+        
+        game_over_screen.coins = self.coins
+        game_over_screen.ids.health_hud.source = 'assets/image/hp/health-hud-1.png'
+        
+        if app.lose_enabled:
+            app.lose.play()
+        Clock.schedule_once(lambda dt: setattr(game_over_screen.ids.health_hud,'source', 'assets/image/hp/health-hud-0.png'),2)
+        Clock.schedule_once(lambda dt: setattr(game_over_screen,'coins', -999999),2)
+        Clock.schedule_once(lambda dt: setattr(game_over_screen.ids.health_hud,'opacity', 0),4)
+        Clock.schedule_once(lambda dt: setattr(game_over_screen.ids.coin_hud,'opacity', 0),4)
+        Clock.schedule_once(lambda dt: setattr(game_over_screen.ids.coin_label,'opacity', 0),4)
+        Clock.schedule_once(lambda dt: game_over_screen.lose_text(), 7)
+        
+    def game_win(self):
+        app.game_music.stop()
+        game_win_screen = self.manager.get_screen('game_win')
+        self.manager.transition = NoTransition()
+        self.manager.current = 'game_win'
+        
+        game_win_screen.coins = 990000
+        game_win_screen.ids.health_hud.source = self.ids.health_hud.source
+        
+        if app.coin_enabled:
+            Clock.schedule_once(lambda dt: app.coin.play(), 2)
+        Clock.schedule_once(lambda dt: setattr(game_win_screen,'coins', 1000000),3)
+        Clock.schedule_once(lambda dt: setattr(game_win_screen.ids.health_hud,'opacity', 0),5)
+        Clock.schedule_once(lambda dt: setattr(game_win_screen.ids.coin_hud,'opacity', 0),5)
+        Clock.schedule_once(lambda dt: setattr(game_win_screen.ids.coin_label,'opacity', 0),5)
+        Clock.schedule_once(lambda dt: game_win_screen.start_credits(), 10)
+        Clock.schedule_once(lambda dt: app.go_to_menu(), 80)
+        Clock.schedule_once(lambda dt: game_win_screen.reset_screen(), 83)
     
+class GameOverScreen(MDScreen):
+    coins = NumericProperty(0)
+    def write(self, dt):
+        if self.curr_lett >= len(self.all_text):
+            Clock.schedule_once(lambda dt: setattr(self.ids.dialog_label,'opacity', 0),3)
+            Clock.schedule_once(lambda dt: self.white(), 6)
+            Clock.schedule_once(lambda dt: app.go_to_menu(), 20)
+            Clock.schedule_once(lambda dt: self.reset_screen(), 23)
+            return False
+        self.ids.dialog_label.text += \
+            self.all_text[self.curr_lett]
+        self.curr_lett += 1
+        if app.text_enabled:
+            sound = choice(app.text_sounds)
+            if sound:
+                sound.stop()
+                sound.play()
+        
+    def lose_text(self):
+        self.all_text = 'You lose... But... You not done our deal.'
+        self.curr_lett = 0
+        self.ids.dialog_label.text = ''
+        self.ids.dialog_label.opacity = 1
+        Clock.schedule_interval(self.write, 0.1)
+    
+    def white(self):
+        if app.noice_enabled:
+            app.noice.play()
+        Animation(opacity=1, duration=5).start(self.ids.end_white_screen)
+        app.store.delete('save_game')
+        
+    def reset_screen(self):
+        self.ids.health_hud.opacity = 1
+        self.ids.coin_hud.opacity = 1
+        self.ids.coin_label.opacity = 1
+        self.ids.end_white_screen.opacity = 0
+        self.ids.dialog_label.text = ''
+        
+class GameWinScreen(MDScreen):
+    coins = NumericProperty(0)
+    def start_credits(self):
+        if app.win_enabled:
+            app.win.play()
+        self.ids.credits.opacity = 0
+        self.ids.credits.text = '''
+        KOTLETA IN THE SPACE
+        
+        THE GALAXY HAS BEEN SAVED
+        
+        THE MINCE HAS BEEN DEFEATED.
+        
+        THE ASTEROID ARE STILL HERE.
+        BUT NOBODY CARES, XDDD.
+        
+        
+        -------------------------------
+        
+        
+        And you...
+        
+        NOW, YOU ARE THE NATIONAL HERO!
+        
+        All love you.
+        You did what no one else would have done.
+        Thanks to you, Kotletonia will continue to exist.
+        
+        
+        -------------------------------
+        
+        
+        CREATED BY: MARS
+        
+        ART & DESIGN: MARS
+        
+        PROGRAMMING: MARS
+        
+        IDEA: BOBKA
+        
+        
+        -------------------------------
+        
+        
+        SPECIAL THANKS
+        
+        Thanks to everyone
+        who defended Kotletonia
+        
+        And thanks to the asteroids
+        for not asking questions.
+        
+        
+        -------------------------------
+        
+        THANKS YOU FOR PLAYING!)
+        
+        KOTLETONIA IS SAFE.
+        
+        FOR NOW...
+        '''
+        Clock.schedule_once(self.move_credits, 0)
 
+
+    def move_credits(self, dt):
+        self.ids.credits.y = -self.ids.credits.height
+        self.ids.credits.opacity = 1
+        Animation(y=Window.height, duration=65).start(self.ids.credits)
+        app.store.delete('save_game')
+        
+    def reset_screen(self):
+        self.ids.health_hud.opacity = 1
+        self.ids.coin_hud.opacity = 1
+        self.ids.coin_label.opacity = 1
+        
+        
 class App(MDApp):
     brightness = NumericProperty(0.0)
     def build(self):
@@ -275,12 +510,41 @@ class App(MDApp):
         self.shot = SoundLoader.load('assets/sound/laser-shot.mp3')
         self.shot_enabled = True
         self.shot.volume = 0.2
+        self.hit = SoundLoader.load('assets/sound/get-hit.mp3')
+        self.hit_enabled = True
+        self.hit.volume = 0.2
+        self.lose = SoundLoader.load('assets/sound/lose.mp3')
+        self.lose_enabled = True
+        self.lose.volume = 0.2
+        self.noice = SoundLoader.load('assets/sound/white-noice.mp3')
+        self.noice_enabled = True
+        self.noice.volume = 0.2
+        self.coin = SoundLoader.load('assets/sound/get_1mil.mp3')
+        self.coin_enabled = True
+        self.coin.volume = 0.2
+        self.win = SoundLoader.load('assets/sound/win_music.mp3')
+        self.win_enabled = True
+        self.win.volume = 0.2
+        self.text_sounds = [
+            SoundLoader.load('assets/sound/sound_text/voice_1.mp3'),
+            SoundLoader.load('assets/sound/sound_text/voice_2.mp3'),
+            SoundLoader.load('assets/sound/sound_text/voice_3.mp3'),
+            SoundLoader.load('assets/sound/sound_text/voice_4.mp3'),
+            SoundLoader.load('assets/sound/sound_text/voice_5.mp3'),
+            SoundLoader.load('assets/sound/sound_text/voice_6.mp3'),
+            SoundLoader.load('assets/sound/sound_text/voice_7.mp3')
+        ]
+        self.text_enabled = True
+        for text_sound in self.text_sounds:
+            text_sound.volume = 0.2
         
         self.store = JsonStore("save.json")
         
         self.sm =  MDScreenManager()
         self.sm.add_widget(MenuScreen(name='menu'))
         self.sm.add_widget(GameScreen(name='game'))
+        self.sm.add_widget(GameOverScreen(name='game_over'))
+        self.sm.add_widget(GameWinScreen(name='game_win'))
         
         self.load_settings()
         
@@ -311,7 +575,7 @@ class App(MDApp):
         for asteroid in game.asteroids:
             asteroids_data.append({"x": asteroid.x, "y": asteroid.y})
         for enemy in game.enemys:
-            enemys_data.append({"x": enemy.x, "y": enemy.y})
+            enemys_data.append({"x": enemy.x, "y": enemy.y, 'hp': enemy.enemy_hp})
         self.store.put(
             'save_game',
             hp=game.hp,
@@ -327,6 +591,9 @@ class App(MDApp):
             return
         data = self.store.get('save_game')
         game = self.sm.get_screen('game')
+        for enemy in game.enemys[:]:
+            game.ids.bullets.remove_widget(enemy)
+        game.enemys.clear()
         game.hp = data['hp']
         game.coins = data['coins']
         game.ship_x = data['ship_x']
@@ -339,6 +606,7 @@ class App(MDApp):
         for enemys_data in data['enemys']:
             enemy = Enemy()
             enemy.pos = (enemys_data['x'], enemys_data['y'])
+            enemy.enemy_hp = enemys_data['hp']
             game.enemys.append(enemy)
             game.ids.bullets.add_widget(enemy)
         game.show_pause()

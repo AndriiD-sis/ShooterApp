@@ -1,0 +1,42 @@
+<GameWinScreen>:
+    canvas.before:
+        Color:
+            rgb: (0, 0, 0, 1)
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+    MDFloatLayout:
+        Image:
+            id: health_hud
+            source: 'assets/image/hp/health-hud-10.png'
+            size_hint: 0.19, 0.08
+            opacity: 1
+            pos_hint: {'center_x': 0.1,'center_y': 0.95}
+            fit_mode: 'fill'
+        Image:
+            id: coin_hud
+            source: 'assets/image/coin-hud.png'
+            size_hint: 0.19, 0.08
+            opacity: 1
+            pos_hint: {'center_x': 0.1,'center_y': 0.85}
+            fit_mode: 'fill'
+        Label:
+            id: coin_label
+            text: str(root.coins)
+            font_size: self.height * 1.2
+            font_name: 'assets/fonts/PixelifySans-Regular.ttf'
+            color: (1, 0.718, 0.149, 1)
+            size_hint: 0.145, 0.065
+            opacity: 1
+            pos_hint: {'center_x': 0.118, 'center_y': 0.85}
+        Label:
+            id: credits
+            text: ''
+            opacity: 0
+            color: (1, 1, 1, 1)
+            size_hint: 1, None
+            height: self.texture_size[1]
+            font_size: root.height * 0.03
+            font_name: 'assets/fonts/PixelifySans-Regular.ttf'
+            halign: 'center'
+            text_size: self.width, None
