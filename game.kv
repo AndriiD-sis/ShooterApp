@@ -35,47 +35,65 @@
             pos_hint: {'center_x': 0.118, 'center_y': 0.85}
 
     MDFloatLayout:
-        MDFloatingActionButton:
+        Button:
             id: pause
-            icon: 'assets/image/buttons/button-paused.png'
-            icon_size: 75
+            background_normal: 'assets/image/buttons/button-paused.png'
+            background_down: 'assets/image/buttons/button-paused.png'
+            border: 0, 0, 0, 0
+            size_hint: None, None
+            size_hint: 0.045, 0.11
             pos_hint: {'center_x': 0.97, 'center_y':0.93}
             on_press: root.show_pause(); app.game_music.stop()
 
-        MDFloatingActionButton:
+        Button:
             id: move_left
-            icon: 'assets/image/buttons/button-left.png'
-            icon_size: 75
-            pos_hint: {'center_x': 0.03, 'center_y':0.16}
+            background_normal: 'assets/image/buttons/button-left.png'
+            background_down: 'assets/image/buttons/button-left.png'
+            border: 0, 0, 0, 0
+            size_hint: None, None
+            size_hint: 0.045, 0.11
+            pos_hint: {'center_x': 0.03, 'center_y':0.165}
             on_press: root.pressKey('left')
             on_release: root.releaseKey('left')
-        MDFloatingActionButton:
+        Button:
             id: move_down
-            icon: 'assets/image/buttons/button-down.png'
-            icon_size: 75
+            background_normal: 'assets/image/buttons/button-down.png'
+            background_down: 'assets/image/buttons/button-down.png'
+            border: 0, 0, 0, 0
+            size_hint: None, None
+            size_hint: 0.045, 0.11
             pos_hint: {'center_x': 0.075}
             on_press: root.pressKey('down')
             on_release: root.releaseKey('down')
-        MDFloatingActionButton:
+        Button:
             id: move_up
-            icon: 'assets/image/buttons/button-up.png'
-            icon_size: 75
-            pos_hint: {'center_x': 0.075, 'center_y':0.27}
+            background_normal: 'assets/image/buttons/button-up.png'
+            background_down: 'assets/image/buttons/button-up.png'
+            border: 0, 0, 0, 0
+            size_hint: None, None
+            size_hint: 0.045, 0.11
+            pos_hint: {'center_x': 0.075, 'center_y': 0.27}
             on_press: root.pressKey('up')
             on_release: root.releaseKey('up')
-        MDFloatingActionButton:
+        Button:
             id: move_right
-            icon: 'assets/image/buttons/button-right.png'
-            icon_size: 75
-            pos_hint: {'center_x': 0.12, 'center_y':0.16}
+            background_normal: 'assets/image/buttons/button-right.png'
+            background_down: 'assets/image/buttons/button-right.png'
+            border: 0, 0, 0, 0
+            size_hint: None, None
+            size_hint: 0.045, 0.11
+            pos_hint: {'center_x': 0.12, 'center_y':0.165}
             on_press: root.pressKey('right')
             on_release: root.releaseKey('right')
 
-        MDFloatingActionButton:
+        Button:
             id: shot
-            icon: 'assets/image/buttons/button-shot.png'
-            icon_size: 75
-            pos_hint: {'center_x': 0.88, 'center_y':0.16}
+            background_normal: 'assets/image/buttons/button-shot.png'
+            background_down: 'assets/image/buttons/button-shot.png'
+            border: 0, 0, 0, 0
+            size_hint: None, None
+            size_hint: 0.045, 0.11
+            pos_hint: {'center_x': 0.88, 'center_y':0.165}
             on_press: root.pressKey('shot')
             on_release: root.releaseKey('shot')
     
@@ -109,7 +127,8 @@
             bold: True
             halign: 'center'
             color: (1, 1, 1, 1)
-            font_size: self.height * 0.4
+            font_size: self.height * 0.2
+            font_name: 'assets/fonts/PressStart2P-Regular.ttf'
             size_hint: 0.25, 0.3
             pos_hint: {'center_x': 0.5,'center_y': 0.95}
 
@@ -127,6 +146,7 @@
                 halign: 'left'
                 valign: 'middle'
                 font_size: self.height * 0.2
+                font_name: 'assets/fonts/PressStart2P-Regular.ttf'
                 on_press: root.hide_pause(); app.game_music.play() if app.music_enabled == True else None
             Button:
                 text: 'Return to menu'
@@ -137,6 +157,7 @@
                 halign: 'left'
                 valign: 'middle'
                 font_size: self.height * 0.2
+                font_name: 'assets/fonts/PressStart2P-Regular.ttf'
                 on_press: app.save_game(); app.go_to_menu();
             Button:
                 text: 'Exit the game'
@@ -147,6 +168,7 @@
                 halign: 'left'
                 valign: 'middle'
                 font_size: self.height * 0.2
+                font_name: 'assets/fonts/PressStart2P-Regular.ttf'
                 on_press: app.save_game(); app.quit()
 
     Widget:
